@@ -65,6 +65,9 @@ begin
 			color <= blue;
 		elsif (column >= 360) and (column <= 426) and (row >= 200) and (row <= 220)then
 			color <= blue;	
+		elsif (column <= ball_x + 2) and (column >= ball_x - 2) and (row >= ball_y - 2)
+				and (row <= ball_y + 2) then
+				color <= red;
 		else 
 			color <= black;
 		
