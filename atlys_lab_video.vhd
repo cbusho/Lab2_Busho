@@ -62,12 +62,25 @@ COMPONENT pong_pixel_gen
            r,g,b : out  STD_LOGIC_VECTOR (7 downto 0)
 		);
 	END COMPONENT;	
+	
+COMPONENT pong_control
+	PORT(
+		clk : IN std_logic;
+		reset : IN std_logic;
+		up : IN std_logic;
+		down : IN std_logic;
+		v_completed : IN std_logic;          
+		ball_x : OUT unsigned(10 downto 0);
+		ball_y : OUT unsigned(10 downto 0);
+		paddle_y : OUT unsigned(10 downto 0)
+		);
+	END COMPONENT;	
 
 signal top_blank: std_logic;
 signal top_row, top_column: unsigned(10 downto 0);
 signal red, green, blue: std_logic_vector(7 downto 0);
 signal v_sync_sig, h_sync_sig, pixel_clk, serialize_clk, serialize_clk_n,
-		 red_s, green_s, blue_s, clock_s: std_logic;
+		 red_s, green_s, blue_s, clock_s, v_comp, ball_x_s, ball_y_s: std_logic;
 
 begin
 
@@ -104,7 +117,7 @@ begin
 		reset => reset,
 		h_sync => h_sync_sig,
 		v_sync => v_sync_sig,
-		v_completed => open,
+		v_completed => v_comp,
 		blank => top_blank,
 		row => top_row,
 		column => top_column
@@ -115,12 +128,23 @@ begin
 		row => top_row,
 		column => top_column,
 		blank => top_blank,
-		ball_x => (others => '0'),
-		ball_y => (others => '0'),
+		ball_x => ball_x_s,
+		ball_y => ball_y_s,
 		paddle_y => (others => '0'),
 		r => red,
 		g => green,
 		b => blue
+	);
+	
+	Inst_pong_control: pong_control PORT MAP(
+		clk => pixel_clk,
+		reset => reset,
+		up => (others => '0'),
+		down => (others => '0'),
+		v_completed => v_comp,
+		ball_x => ball_x_s,
+		ball_y => ball_y_s,
+		paddle_y => open
 	);
 
     -- Convert VGA signals to HDMI (actually, DVID ... but close enough)
