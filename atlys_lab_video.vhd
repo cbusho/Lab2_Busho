@@ -33,7 +33,9 @@ entity atlys_lab_video is
     Port ( clk : in  STD_LOGIC;
            reset : in  STD_LOGIC;
 			  SW6: in STD_LOGIC;
-			  SW7: in STD_LOGIC;			  
+			  SW7: in STD_LOGIC;
+			  BTNU: in STD_LOGIC;
+			  BTND: in STD_LOGIC;	
            tmds : out  STD_LOGIC_VECTOR (3 downto 0);
            tmdsb : out  STD_LOGIC_VECTOR (3 downto 0));
 end atlys_lab_video;
@@ -77,10 +79,10 @@ COMPONENT pong_control
 	END COMPONENT;	
 
 signal top_blank: std_logic;
-signal top_row, top_column: unsigned(10 downto 0);
+signal top_row, top_column, ball_x_s, ball_y_s, paddle_y_s: unsigned(10 downto 0);
 signal red, green, blue: std_logic_vector(7 downto 0);
 signal v_sync_sig, h_sync_sig, pixel_clk, serialize_clk, serialize_clk_n,
-		 red_s, green_s, blue_s, clock_s, v_comp, ball_x_s, ball_y_s: std_logic;
+		 red_s, green_s, blue_s, clock_s, v_comp: std_logic;
 
 begin
 
@@ -130,7 +132,7 @@ begin
 		blank => top_blank,
 		ball_x => ball_x_s,
 		ball_y => ball_y_s,
-		paddle_y => (others => '0'),
+		paddle_y => paddle_y_s,
 		r => red,
 		g => green,
 		b => blue
@@ -139,12 +141,12 @@ begin
 	Inst_pong_control: pong_control PORT MAP(
 		clk => pixel_clk,
 		reset => reset,
-		up => (others => '0'),
-		down => (others => '0'),
+		up => BTNU,
+		down => BTND,
 		v_completed => v_comp,
 		ball_x => ball_x_s,
 		ball_y => ball_y_s,
-		paddle_y => open
+		paddle_y => paddle_y_s
 	);
 
     -- Convert VGA signals to HDMI (actually, DVID ... but close enough)
