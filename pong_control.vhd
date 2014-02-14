@@ -32,6 +32,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity pong_control is
     Port ( clk : in  STD_LOGIC;
            reset : in  STD_LOGIC;
+			  Switch : in STD_LOGIC;
            up : in  STD_LOGIC;
            down : in  STD_LOGIC;
            v_completed : in  STD_LOGIC;
@@ -80,8 +81,8 @@ begin
 		end if;
 	end process;
 
-	paddle_next <= paddle_reg + 5 when up = '1' else
-						paddle_reg - 5 when down = '1' else
+	paddle_next <= paddle_reg - to_unsigned(5,11) when (up = '1' and count_reg = 2000 and paddle_reg > 40) else
+						paddle_reg + to_unsigned(5,11) when (down = '1' and count_reg = 2000 and paddle_reg < 440) else
 						paddle_reg;	
 	
 -- count logic
@@ -103,15 +104,27 @@ begin
 		state_next <= state_reg;
 		case state_reg is
 			when idle =>
-				if (count_reg = 2000 and ball_x_mov_reg = '0' and ball_y_mov_reg = '0')then
-					state_next <= down_left;
-				elsif (count_reg = 2000 and ball_x_mov_reg = '0' and ball_y_mov_reg = '1')then
-					state_next <= up_left;
-				elsif (count_reg = 2000 and ball_x_mov_reg = '1' and ball_y_mov_reg = '0')then
-					state_next <= down_right;
-				elsif (count_reg = 2000 and ball_x_mov_reg = '1' and ball_y_mov_reg = '1')then
-					state_next <= up_right;	
-				end if;	
+				if (Switch = '1') then
+					if (count_reg = 1000 and ball_x_mov_reg = '0' and ball_y_mov_reg = '0')then
+						state_next <= down_left;
+					elsif (count_reg = 1000 and ball_x_mov_reg = '0' and ball_y_mov_reg = '1')then
+						state_next <= up_left;
+					elsif (count_reg = 1000 and ball_x_mov_reg = '1' and ball_y_mov_reg = '0')then
+						state_next <= down_right;
+					elsif (count_reg = 1000 and ball_x_mov_reg = '1' and ball_y_mov_reg = '1')then
+						state_next <= up_right;	
+					end if;
+				else		
+					if (count_reg = 2000 and ball_x_mov_reg = '0' and ball_y_mov_reg = '0')then
+						state_next <= down_left;
+					elsif (count_reg = 2000 and ball_x_mov_reg = '0' and ball_y_mov_reg = '1')then
+						state_next <= up_left;
+					elsif (count_reg = 2000 and ball_x_mov_reg = '1' and ball_y_mov_reg = '0')then
+						state_next <= down_right;
+					elsif (count_reg = 2000 and ball_x_mov_reg = '1' and ball_y_mov_reg = '1')then
+						state_next <= up_right;	
+					end if;
+				end if;
 			when down_left =>
 				state_next <= idle;
 			when down_right =>

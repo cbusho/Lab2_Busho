@@ -69,6 +69,7 @@ COMPONENT pong_control
 	PORT(
 		clk : IN std_logic;
 		reset : IN std_logic;
+		Switch : IN std_logic;
 		up : IN std_logic;
 		down : IN std_logic;
 		v_completed : IN std_logic;          
@@ -141,6 +142,7 @@ begin
 	Inst_pong_control: pong_control PORT MAP(
 		clk => pixel_clk,
 		reset => reset,
+		Switch => SW7,
 		up => BTNU,
 		down => BTND,
 		v_completed => v_comp,
