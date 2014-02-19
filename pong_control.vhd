@@ -163,26 +163,36 @@ begin
 			case state_next is
 				when idle =>
 				when down_left =>
-					ball_x_next <= ball_x_reg - to_unsigned(1,11);
-					ball_y_next <= ball_y_reg - to_unsigned(1,11);
+					ball_x_next <= ball_x_reg - to_unsigned(2,11);
+					ball_y_next <= ball_y_reg - to_unsigned(2,11);
 				when down_right =>
-					ball_x_next <= ball_x_reg + to_unsigned(1,11);
-					ball_y_next <= ball_y_reg - to_unsigned(1,11); 
+					ball_x_next <= ball_x_reg + to_unsigned(2,11);
+					ball_y_next <= ball_y_reg - to_unsigned(2,11); 
 				when up_left =>
-					ball_x_next <= ball_x_reg - to_unsigned(1,11);
-					ball_y_next <= ball_y_reg + to_unsigned(1,11); 
+					ball_x_next <= ball_x_reg - to_unsigned(2,11);
+					ball_y_next <= ball_y_reg + to_unsigned(2,11); 
 				when up_right =>
-					ball_x_next <= ball_x_reg + to_unsigned(1,11);
-					ball_y_next <= ball_y_reg + to_unsigned(1,11); 
+					ball_x_next <= ball_x_reg + to_unsigned(2,11);
+					ball_y_next <= ball_y_reg + to_unsigned(2,11); 
 			end case;
 			
 			if(ball_x_reg > 630) then
 				ball_x_mov_next <= '0';
 			end if;	
 			
-			if (ball_x_reg < 12) and (ball_y_reg < paddle_reg + 30) and (ball_y_reg > paddle_reg - 30) then
+			if (ball_x_reg < 12) and (ball_y_reg < paddle_reg + 15) and (ball_y_reg > paddle_reg - 15) then
 				ball_x_mov_next <= '1';
-			end if;	
+			end if;
+
+			if (ball_x_reg < 12) and (ball_y_reg < paddle_reg + 30) and (ball_y_reg > paddle_reg + 15) then
+				ball_x_mov_next <= '1';
+				ball_y_mov_next <= '0';
+			end if;
+			
+			if (ball_x_reg < 12) and (ball_y_reg > paddle_reg - 30) and (ball_y_reg < paddle_reg - 15) then
+				ball_x_mov_next <= '1';
+				ball_y_mov_next <= '1';
+			end if;
 			
 --			and (ball_y_reg < paddle_reg + 30) and (ball_y_reg > paddle_reg - 30)
 			
@@ -194,7 +204,7 @@ begin
 				ball_y_mov_next <= '1';
 			end if;
 			
-			if (ball_x_reg < 10) then
+			if (ball_x_reg < 5) then
 				ball_x_next <= ball_x_reg;
 				ball_y_next <= ball_y_reg;
 			end if;	
