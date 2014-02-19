@@ -80,19 +80,6 @@ begin
 			ball_y_reg <= ball_y_next;
 		end if;
 	end process;
-
---	process(v_completed, up, down, count_reg, paddle_reg)
---	begin
---		if (v_completed = '1') then
---			if (up = '1' and count_reg = 500 and paddle_reg > 40) then
---				paddle_next <= paddle_reg - to_unsigned(5,11);	
---			elsif (down = '1' and count_reg = 500 and paddle_reg < 440) then
---				paddle_next <= paddle_reg + to_unsigned(5,11);		
---			else	
---				paddle_next <= paddle_reg;
---			end if;	
---		end if;	
---	end process;
 	
 	paddle_next <= paddle_reg - to_unsigned(5,11) when (up = '1' and count_reg = 1000 and paddle_reg > 40 and v_completed = '1') else
 								paddle_reg + to_unsigned(5,11) when (down = '1' and count_reg = 1000 and paddle_reg < 440 and v_completed = '1') else
@@ -193,8 +180,6 @@ begin
 				ball_x_mov_next <= '1';
 				ball_y_mov_next <= '1';
 			end if;
-			
---			and (ball_y_reg < paddle_reg + 30) and (ball_y_reg > paddle_reg - 30)
 			
 			if(ball_y_reg > 470) then
 				ball_y_mov_next <= '0';				
