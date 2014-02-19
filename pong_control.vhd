@@ -64,7 +64,7 @@ begin
 	end process;
 	
 --look ahead output buffer	
-	process(clk)
+	process(clk, reset)
 	begin
 		if reset = '1' then
 			ball_x_reg <= to_unsigned(200,11);
@@ -72,7 +72,7 @@ begin
 			ball_x_mov_reg <= '1';
 			ball_y_mov_reg <= '1';
 			paddle_reg <= to_unsigned(200,11);
-		elsif (clk'event and clk = '1') then
+		elsif rising_edge(clk) then
 			ball_x_mov_reg <= ball_x_mov_next;
 			ball_y_mov_reg <= ball_y_mov_next;
 			paddle_reg <= paddle_next;
@@ -81,110 +81,124 @@ begin
 		end if;
 	end process;
 
-	paddle_next <= paddle_reg - to_unsigned(5,11) when (up = '1' and count_reg = 2000 and paddle_reg > 40) else
-						paddle_reg + to_unsigned(5,11) when (down = '1' and count_reg = 2000 and paddle_reg < 440) else
-						paddle_reg;	
+--	process(v_completed, up, down, count_reg, paddle_reg)
+--	begin
+--		if (v_completed = '1') then
+--			if (up = '1' and count_reg = 500 and paddle_reg > 40) then
+--				paddle_next <= paddle_reg - to_unsigned(5,11);	
+--			elsif (down = '1' and count_reg = 500 and paddle_reg < 440) then
+--				paddle_next <= paddle_reg + to_unsigned(5,11);		
+--			else	
+--				paddle_next <= paddle_reg;
+--			end if;	
+--		end if;	
+--	end process;
+	
+	paddle_next <= paddle_reg - to_unsigned(5,11) when (up = '1' and count_reg = 1000 and paddle_reg > 40 and v_completed = '1') else
+								paddle_reg + to_unsigned(5,11) when (down = '1' and count_reg = 1000 and paddle_reg < 440 and v_completed = '1') else
+								paddle_reg;	
 	
 -- count logic
-	process(clk, reset, v_completed)
+	process(clk, reset)
 	begin
 		if (reset = '1') then
 			count_reg <= (others => '0');
-		elsif (rising_edge(clk) and v_completed = '1') then
+		elsif rising_edge(clk) then
 			count_reg <= count_next;
 		end if;
 	end process;	
 	
-	count_next <= 	(others => '0') when (state_reg /= state_next) else
-						count_reg + 1;	
+	count_next <= 	(others => '0') when (count_reg > 1000) and (state_reg /= state_next) else
+						count_reg + 1 when v_completed = '1' else
+						count_reg;	
 						
 -- next state logic
-	process(state_reg, count_reg, ball_x_mov_reg, ball_y_mov_reg)
+	process(state_reg, count_reg, ball_x_mov_reg, ball_y_mov_reg, Switch)
 	begin
-		state_next <= state_reg;
-		case state_reg is
-			when idle =>
-				if (Switch = '1') then
-					if (count_reg = 1000 and ball_x_mov_reg = '0' and ball_y_mov_reg = '0')then
-						state_next <= down_left;
-					elsif (count_reg = 1000 and ball_x_mov_reg = '0' and ball_y_mov_reg = '1')then
-						state_next <= up_left;
-					elsif (count_reg = 1000 and ball_x_mov_reg = '1' and ball_y_mov_reg = '0')then
-						state_next <= down_right;
-					elsif (count_reg = 1000 and ball_x_mov_reg = '1' and ball_y_mov_reg = '1')then
-						state_next <= up_right;	
+			state_next <= state_reg;
+			case state_reg is
+				when idle =>
+					if (Switch = '1') then					
+						if (count_reg = 200 and ball_x_mov_reg = '0' and ball_y_mov_reg = '0')then
+							state_next <= down_left;
+						elsif (count_reg = 200 and ball_x_mov_reg = '0' and ball_y_mov_reg = '1')then
+							state_next <= up_left;
+						elsif (count_reg = 200 and ball_x_mov_reg = '1' and ball_y_mov_reg = '0')then
+							state_next <= down_right;
+						elsif (count_reg = 200 and ball_x_mov_reg = '1' and ball_y_mov_reg = '1')then
+							state_next <= up_right;	
+						end if;
+					else		
+						if (count_reg = 1000 and ball_x_mov_reg = '0' and ball_y_mov_reg = '0')then
+							state_next <= down_left;
+						elsif (count_reg = 1000 and ball_x_mov_reg = '0' and ball_y_mov_reg = '1')then
+							state_next <= up_left;
+						elsif (count_reg = 1000 and ball_x_mov_reg = '1' and ball_y_mov_reg = '0')then
+							state_next <= down_right;
+						elsif (count_reg = 1000 and ball_x_mov_reg = '1' and ball_y_mov_reg = '1')then
+							state_next <= up_right;	
+						end if;
 					end if;
-				else		
-					if (count_reg = 2000 and ball_x_mov_reg = '0' and ball_y_mov_reg = '0')then
-						state_next <= down_left;
-					elsif (count_reg = 2000 and ball_x_mov_reg = '0' and ball_y_mov_reg = '1')then
-						state_next <= up_left;
-					elsif (count_reg = 2000 and ball_x_mov_reg = '1' and ball_y_mov_reg = '0')then
-						state_next <= down_right;
-					elsif (count_reg = 2000 and ball_x_mov_reg = '1' and ball_y_mov_reg = '1')then
-						state_next <= up_right;	
-					end if;
-				end if;
-			when down_left =>
-				state_next <= idle;
-			when down_right =>
-				state_next <= idle;
-			when up_left =>
-				state_next <= idle;
-			when up_right =>
-				state_next <= idle;	
-		end case;
+				when down_left =>
+					state_next <= idle;
+				when down_right =>
+					state_next <= idle;
+				when up_left =>
+					state_next <= idle;
+				when up_right =>
+					state_next <= idle;	
+			end case;	
 	end process;						
 
 --look ahead output logic
-	process(state_next, ball_x_reg, ball_y_reg, ball_x_next, ball_y_next)
+	process(v_completed, paddle_reg, state_next, ball_x_reg, ball_y_reg, ball_x_next, ball_y_next, ball_x_mov_reg, ball_y_mov_reg)
 	begin
 		ball_x_next <= ball_x_reg;
 		ball_y_next <= ball_y_reg;
 		ball_x_mov_next <= ball_x_mov_reg;		
 		ball_y_mov_next <= ball_y_mov_reg;
 		
-		--default value
-		case state_next is
-			when idle =>
+		if (v_completed = '1') then		
+			--default value
+			case state_next is
+				when idle =>
+				when down_left =>
+					ball_x_next <= ball_x_reg - to_unsigned(1,11);
+					ball_y_next <= ball_y_reg - to_unsigned(1,11);
+				when down_right =>
+					ball_x_next <= ball_x_reg + to_unsigned(1,11);
+					ball_y_next <= ball_y_reg - to_unsigned(1,11); 
+				when up_left =>
+					ball_x_next <= ball_x_reg - to_unsigned(1,11);
+					ball_y_next <= ball_y_reg + to_unsigned(1,11); 
+				when up_right =>
+					ball_x_next <= ball_x_reg + to_unsigned(1,11);
+					ball_y_next <= ball_y_reg + to_unsigned(1,11); 
+			end case;
+			
+			if(ball_x_reg > 630) then
+				ball_x_mov_next <= '0';
+			end if;	
+			
+			if (ball_x_reg < 12) and (ball_y_reg < paddle_reg + 30) and (ball_y_reg > paddle_reg - 30) then
+				ball_x_mov_next <= '1';
+			end if;	
+			
+--			and (ball_y_reg < paddle_reg + 30) and (ball_y_reg > paddle_reg - 30)
+			
+			if(ball_y_reg > 470) then
+				ball_y_mov_next <= '0';				
+			end if;	
+			
+			if(ball_y_reg < 10) then
+				ball_y_mov_next <= '1';
+			end if;
+			
+			if (ball_x_reg < 10) then
 				ball_x_next <= ball_x_reg;
 				ball_y_next <= ball_y_reg;
-				ball_x_mov_next <= ball_x_mov_reg;
-				ball_y_mov_next <= ball_y_mov_reg;
-			when down_left =>
-				ball_x_next <= ball_x_reg - to_unsigned(1,11);
-				ball_y_next <= ball_y_reg - to_unsigned(1,11);
-			when down_right =>
-				ball_x_next <= ball_x_reg + to_unsigned(1,11);
-				ball_y_next <= ball_y_reg - to_unsigned(1,11); 
-			when up_left =>
-				ball_x_next <= ball_x_reg - to_unsigned(1,11);
-				ball_y_next <= ball_y_reg + to_unsigned(1,11); 
-			when up_right =>
-				ball_x_next <= ball_x_reg + to_unsigned(1,11);
-				ball_y_next <= ball_y_reg + to_unsigned(1,11); 
-		end case;
-		
-		if(ball_x_next > 630) then
-			ball_x_next <= to_unsigned(620,11);
-			ball_x_mov_next <= '0';
-		end if;	
-		
-		if(ball_x_next < 10) then
-			ball_x_next <= to_unsigned(20,11);
-			ball_x_mov_next <= '1';
-		end if;	
-		
-		if(ball_y_next > 470) then
-			ball_y_next <= to_unsigned(460,11);
-			ball_y_mov_next <= '0';
-		end if;	
-		
-		if(ball_y_next < 10) then
-			ball_y_next <= to_unsigned(20,11);
-			ball_y_mov_next <= '1';
-		end if;	
-		
+			end if;	
+		end if;			
 	end process;
 
 --output 
@@ -193,4 +207,3 @@ begin
 	paddle_y <= paddle_reg;
 
 end Behavioral;
-
