@@ -45,7 +45,7 @@ top atlys shell in conjunction with all the VGA components used in Lab1 in order
 
 - pong_control.vhd state diagram
 
-![alt text](Pong_control_state.vhd "State Diagram")
+![alt text](Pong_control_state_diagram.png "State Diagram")
 
 ## Test/Debug
 
